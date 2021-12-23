@@ -38,7 +38,7 @@ def display_data(**kwargs):
             return f'{val:<10}'
         
     # columns_names = list( map(lambda index, x: spacer(index, x), enumerate(columns)) )
-    columns_names = [spacer(index, val) for index, val in enumerate(columns)]
+    columns_names = (spacer(index, val) for index, val in enumerate(columns))
     table_header = indent + ''.join(columns_names)
     
     dashed_line_length = len(table_header)
@@ -48,7 +48,7 @@ def display_data(**kwargs):
     print(table_header)
     print(border_dashes)
     for i in range(len(dataset)):
-        row_i_spaced = [spacer(index, val) for index , val in enumerate(dataset[i])]
+        row_i_spaced = (spacer(index, val) for index , val in enumerate(dataset[i]))
         row_i = indent + ''.join(row_i_spaced)
         print(row_i)
     print(border_dashes)
@@ -197,16 +197,21 @@ if __name__ == '__main__':
     def predict_score():
         display_predict_grade(dataset)
         
-    def exit_system():
+    def multi_line_center(multi_line_str, cntr=5):
+        line_split = multi_line_str.split('\n')
+        line_split_centered = [ sentence.center(cntr) for sentence in line_split]
+        return '\n'.join(line_split_centered)
+        
+    def exit_system(msg):
         global run
-        print('See you soon!')
+        format_output(msg)
         run = False
         
     operations = {
         "1": {"func": load_data, "title": "Read Data"},
         "2": {"func": list_data, "title": "List Data"},
         "3": {"func": compute_show_grades, "title": "Compute and Show Grades"},
-        "4": {"func": search_by_name, "title": "Search by Name"},
+        "4": {"func": search_name, "title": "Search by Name"},
         "5": {"func": descriptive_Stats, "title": "Descriptive Statistics"},
         "6": {"func": reg_analysis, "title": "Regression Analysis"},
         "7": {"func": predict_score, "title": "Prediction"},
@@ -217,25 +222,29 @@ if __name__ == '__main__':
     
 
     def execute_operation(operations, operation_index, dataset):
-        operation_name = operations[operation_index]["title"]
-        operation_func = operations[operation_index]["func"]
+        functionality = operations.get(operation_index)
+        if functionality:
+            operation_name = functionality["title"]
+            operation_func = functionality["func"]
         
         if not run: return
 
         if operation_index in operations.keys():
             if int(operation_index) == 1:
-                print(f'{operation_index}- {operation_name}...')
+                print(f'{operation_index}- {operation_name} ...')
                 operation_func()
             if int(operation_index) in range(2,8):
-                print(f'{operation_index}- {operation_name}...')
+                print(f'{operation_index}- {operation_name} ...')
                 operation_func()
             if int(operation_index) == 9:
-                operation_func()
+                operation_func(exit_msg_formatted)
                 return
             print(f'{operation_name} has finished successfully.\n')
             get_user_option(dataset, operations)
         else:
-            print("\nThe option you chose is not in the list, please choose a valid option from the list below!\n")
+            msg = "The option you chose is not in the list\nPlease choose a valid option from the ones below!"
+            msg_formatted = multi_line_center(msg, 60)
+            format_output(msg_formatted)
             options_prompt(operations)
             get_user_option(dataset, operations)
     
@@ -250,9 +259,14 @@ if __name__ == '__main__':
         execute_operation(operations, user_option, dataset)
     
     
-    welcome_msg = ['Welcome to GRADES_STATS V1.0', 'Designed By Alaa Mirghani']
-    welcome_msg_str = '\n'.join([line.center(60) for line in welcome_msg])
-    format_output(welcome_msg_str)
+    # welcome_msg = ['Welcome to GRADES_STATS V1.0', 'Designed By Alaa Mirghani']
+    welcome_msg = 'Welcome to GRADES_STATS V1.0 Beta\nDesigned By Alaa Mirghani'
+    welcome_msg_formatted = multi_line_center(welcome_msg, 60)
+    
+    exit_msg = 'Thanks for using GRADES_STATS v1.0 Beta\nAll Rights Reserved (c)\nAlaa Mirghai'
+    exit_msg_formatted = multi_line_center(exit_msg, 60)
+    
+    format_output(welcome_msg_formatted)
     print(" ")
     options_prompt(operations)
     print(" ")
