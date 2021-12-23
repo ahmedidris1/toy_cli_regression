@@ -1,6 +1,5 @@
 import csv
 from math import sqrt
-from typing import Dict
 
 data_file = './data/sampleData.csv'
 
