@@ -33,7 +33,7 @@ def display_data(**kwargs):
     
     def spacer(index, val):
         if index == 1:
-            return f'{val:<20}'
+            return f'{val:<20}' 
         else:
             return f'{val:<10}'
         
@@ -52,10 +52,6 @@ def display_data(**kwargs):
         row_i = indent + ''.join(row_i_spaced)
         print(row_i)
     print(border_dashes)
-    
-dataset = load_csv(data_file)
-display_data(**dataset)   
-# display_data(ids, names, hours, scores)
     
     
 def grade_to_alphapet(grade_numeric):
@@ -76,13 +72,9 @@ def compute_grades(dataset):
     dataset_copy.pop('Hours', None)
     dataset_copy['Grade'] = list( map(grade_to_alphapet, dataset_copy['Grade']) )
     display_data(**dataset_copy)
-    
-# compute_grades(dataset)
-# print(dataset)
 
 
-def search_by_name(dataset):
-    name = input('Please, enter the name you are looking for: ').lower()
+def search_by_name(dataset, name):
     names_list = map(lambda x: x.lower() ,dataset['Name'])
     found_indices = [index for index, full_name in enumerate(names_list) if name in full_name]
     
@@ -92,18 +84,15 @@ def search_by_name(dataset):
         search_result_dict[key] = [dataset[key][i] for i in found_indices]
         
     display_data(**search_result_dict)
-    
-    
-# search_by_name(dataset)
 
 
 def mean(arr):
     return sum(arr) / len(arr)
 
-
+# var(x) = 1/n-1 sum((x-x_bar)**2)
 def var(arr):
     arr_mean = mean(arr)
-    diff = [(arr[i]-arr_mean)**2 for i in range(len(arr))]
+    diff = [(el-arr_mean)**2 for el in arr]
     variance = sum(diff) / (len(diff) - 1)
     return round( variance, 2 )
 
@@ -117,8 +106,6 @@ def calculate_descriptive_statistics(dataset):
     hours = dataset['Hours']
     grades = dataset['Grade']
     
-    print(var(hours))
-    
     stats =  {
         '----': ['Hours', 'Score'],
         'Mean': [mean(hours), mean(grades)],
@@ -128,9 +115,8 @@ def calculate_descriptive_statistics(dataset):
     
     display_data(**stats)
     
-# calculate_descriptive_statistics(dataset)
 
-
+# b1 = (sum(xy) - x_bar * y_bar) / (sum(x**2) -n*x_bar**2)
 def calculate_regression_param(dataset, independent, dependent):
     x = dataset[independent]
     y = dataset[dependent]
@@ -142,46 +128,133 @@ def calculate_regression_param(dataset, independent, dependent):
     b1 = ( sum(xy) - n*mean(x)*mean(y) ) / ( sum(x_square) - n*mean(x)**2 )
     b0 = mean(y) - b1*mean(x)
     
-    border = '-'*60
-    regression_equation = f'Scores = {b0} + {round(b1, 3)} * Hours'
-    
-    # print(border)
-    # print(regression_equation.center(60))
-    # print(border)
-    
     return b0, b1
 
-    
-# print( calculate_regression_param(dataset, 'Hours', 'Grade') )
-
-
+# y = b0 + b1*x
 def predict_grade(dataset, hours):
-    b0, b1 = calculate_regression_param(dataset)
+    b0, b1 = calculate_regression_param(dataset, 'Hours', 'Grade')
     
     return b0 + b1*hours
-
-
-if '__name__' == '__main__':
     
-    run = True
 
+dataset = load_csv(data_file)
+# display_data(**dataset)
+# compute_grades(dataset)
+# calculate_descriptive_statistics(dataset)
+# search_name = input('Please enter the name you are looking for: ')
+# search_by_name(dataset, search_name)
+# display_reg_equation(dataset)
+# predict_g(dataset)
+
+
+if __name__ == '__main__':
+    dataset = {
+               "ID":[],
+               "Name": [], 
+               "Hours": [], 
+               "Grade": []
+               }
+    
+    def load_data():
+        global dataset
+        dataset = load_csv(data_file)
+        # print(dataset)
+    
+    def list_data():
+        display_data(**dataset)
+        
+    def compute_show_grades():
+        compute_grades(dataset)
+        
+    def search_name():
+        name = input('Enter the name you want to look for: ')
+        search_by_name(dataset, name)
+        
+    def descriptive_Stats():
+        calculate_descriptive_statistics(dataset)
+        
+    def format_output(output):
+        border_dashes = '-' * 60
+        print(border_dashes)
+        print(output.center(60))
+        print(border_dashes)
+
+    def display_reg_equation(dataset):
+        b0, b1 = calculate_regression_param(dataset, 'Hours', 'Grade')
+        reg_equation_str = f'Score = {round(b0, 3)} + {round(b1, 3)} * Hours'
+        format_output(reg_equation_str)
+
+        
+    def display_predict_grade(dataset):
+        study_hours = float(input('Enter the number of study hours: '))
+        predicted = round(predict_grade(dataset, study_hours), 3)
+        prediction_str = f'Predicted score = {predicted}'
+        format_output(prediction_str)
+            
+    def reg_analysis():
+        display_reg_equation(dataset)
+        
+    def predict_score():
+        display_predict_grade(dataset)
+        
+    def exit_system():
+        global run
+        print('See you soon!')
+        run = False
+        
     operations = {
-        "1": {"func": "read_data", "title": "Read Data"},
-        "2": {"func": "list_data", "title": "List Data"},
-        "3": {"func": 'compute_show_grades', "title": "Compute and Show Grades"},
-        "4": {"func": 'search_by_name', "title": "Search by Name"},
-        "5": {"func": 'descriptive_Stats', "title": "Descriptive Statistics"},
-        "6": {"func": 'reg_analysis', "title": "Regression Analysis"},
-        "7": {"func": 'predict_grade', "title": "Prediction"},
-        "9": {"func": 'exit_system', "title": "Exit the System"}
+        "1": {"func": load_data, "title": "Read Data"},
+        "2": {"func": list_data, "title": "List Data"},
+        "3": {"func": compute_show_grades, "title": "Compute and Show Grades"},
+        "4": {"func": search_by_name, "title": "Search by Name"},
+        "5": {"func": descriptive_Stats, "title": "Descriptive Statistics"},
+        "6": {"func": reg_analysis, "title": "Regression Analysis"},
+        "7": {"func": predict_score, "title": "Prediction"},
+        "9": {"func": exit_system, "title": "Exit the System"}
     }
     
-    dashed_line = '-'*60
-    welcome_msg = f' Welcome to GRADES_STATS V1.0\nDesigned By Alaa Mirghani'
+    run = True
     
-    operations_names = [operation["title"] for operation in operations.values()]
+
+    def execute_operation(operations, operation_index, dataset):
+        operation_name = operations[operation_index]["title"]
+        operation_func = operations[operation_index]["func"]
+        
+        if not run: return
+
+        if operation_index in operations.keys():
+            if int(operation_index) == 1:
+                print(f'{operation_index}- {operation_name}...')
+                operation_func()
+            if int(operation_index) in range(2,8):
+                print(f'{operation_index}- {operation_name}...')
+                operation_func()
+            if int(operation_index) == 9:
+                operation_func()
+                return
+            print(f'{operation_name} has finished successfully.\n')
+            get_user_option(dataset, operations)
+        else:
+            print("\nThe option you chose is not in the list, please choose a valid option from the list below!\n")
+            options_prompt(operations)
+            get_user_option(dataset, operations)
     
-    print(operations_names)
+
     
-    while run:
-        pass
+    def options_prompt(operations):
+        for index, operation in operations.items():
+            print(f'{index}- {operation["title"]}')
+
+    def get_user_option(dataset, operations):
+        user_option = input('Please choose an option (enter the option number): ')
+        execute_operation(operations, user_option, dataset)
+    
+    
+    welcome_msg = ['Welcome to GRADES_STATS V1.0', 'Designed By Alaa Mirghani']
+    welcome_msg_str = '\n'.join([line.center(60) for line in welcome_msg])
+    format_output(welcome_msg_str)
+    print(" ")
+    options_prompt(operations)
+    print(" ")
+    get_user_option(dataset, operations)
+    
